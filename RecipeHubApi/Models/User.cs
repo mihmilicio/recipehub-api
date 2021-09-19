@@ -27,6 +27,6 @@ namespace RecipeHubApi.Models
         [Required]
         public string Password { get; set; }
         
-        public string Image { get; set; }
+        public string? Image { get; set; }
     }
 }
