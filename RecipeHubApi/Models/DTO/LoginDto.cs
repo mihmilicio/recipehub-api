@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RecipeHubApi.Models.DTO
 {
-    public class LoginDTO
+    public class LoginDto
     {
         [Required] public string Username { get; set; }
 

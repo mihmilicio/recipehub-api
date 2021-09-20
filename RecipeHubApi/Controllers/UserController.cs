@@ -49,17 +49,17 @@ namespace RecipeHubApi.Controllers
         }
 
 
-        private User? GetById(string id)
+        private User GetById(string id)
         {
             return _context.User.Find(id);
         }
 
-        private User? GetByEmail(string email)
+        private User GetByEmail(string email)
         {
             return _context.User.FirstOrDefault(u => u.Email == email);
         }
 
-        private User? GetByUsername(string username)
+        private User GetByUsername(string username)
         {
             return _context.User.FirstOrDefault(u => u.Username == username);
         }
@@ -67,9 +67,9 @@ namespace RecipeHubApi.Controllers
 
         [HttpPost]
         [Route("login")]
-        public IActionResult Login([FromBody] LoginDTO login)
+        public IActionResult Login([FromBody] LoginDto login)
         {
-            User? user = GetByUsername(login.Username);
+            var user = GetByUsername(login.Username);
             if (user == null)
             {
                 return Unauthorized();
@@ -92,7 +92,7 @@ namespace RecipeHubApi.Controllers
                 return BadRequest();
             }
 
-            User? originalUser = GetById(userId);
+            var originalUser = GetById(userId);
             if (originalUser == null)
             {
                 return NotFound();
@@ -115,6 +115,7 @@ namespace RecipeHubApi.Controllers
             }
             catch (Exception e)
             {
+                Debug.WriteLine(e);
                 return BadRequest();
             }
 
@@ -125,7 +126,7 @@ namespace RecipeHubApi.Controllers
         [Route("{userId}")]
         public IActionResult Delete([FromRoute] string userId)
         {
-            User? user = GetById(userId);
+            var user = GetById(userId);
             if (user == null)
             {
                 return NotFound();
