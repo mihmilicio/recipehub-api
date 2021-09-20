@@ -98,6 +98,16 @@ namespace RecipeHubApi.Controllers
                 return NotFound();
             }
 
+            if (GetByEmail(user.Email) != null)
+            {
+                return Conflict();
+            }
+
+            if (GetByUsername(user.Username) != null)
+            {
+                return Conflict();
+            }
+
             try
             {
                 _context.User.Update(user);
