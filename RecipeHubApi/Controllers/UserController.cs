@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using RecipeHubApi.Data;
 using RecipeHubApi.Models;
+using RecipeHubApi.Models.DTO;
 
 namespace RecipeHubApi.Controllers
 {
@@ -61,6 +62,25 @@ namespace RecipeHubApi.Controllers
         private User? GetByUsername(string username)
         {
             return _context.User.FirstOrDefault(u => u.Username == username);
+        }
+
+
+        [HttpPost]
+        [Route("login")]
+        public IActionResult Login([FromBody] LoginDTO login)
+        {
+            User? user = GetByUsername(login.Username);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            if (user.Password != login.Password)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(user);
         }
     }
 }
