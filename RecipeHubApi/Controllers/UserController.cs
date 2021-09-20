@@ -82,5 +82,29 @@ namespace RecipeHubApi.Controllers
 
             return Ok(user);
         }
+
+        [HttpDelete]
+        [Route("{userId}")]
+        public IActionResult Delete([FromRoute] string userId)
+        {
+            User? user = GetById(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _context.User.Remove(user);
+                _context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return BadRequest();
+            }
+
+            return NoContent();
+        }
     }
 }
