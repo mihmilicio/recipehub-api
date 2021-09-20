@@ -110,6 +110,7 @@ namespace RecipeHubApi.Controllers
 
             try
             {
+                user.ModifiedOn = DateTime.Now;
                 _context.User.Update(user);
                 _context.SaveChanges();
             }
