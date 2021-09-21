@@ -92,18 +92,22 @@ namespace RecipeHubApi.Controllers
                 return BadRequest();
             }
 
+            // TODO fix
+            // The instance of entity type 'User' cannot be tracked because another instance with the same key value for {'Id'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the conflicting key values.
             var originalUser = GetById(userId);
             if (originalUser == null)
             {
                 return NotFound();
             }
 
-            if (GetByEmail(user.Email) != null)
+            var userWithEmail = GetByEmail(user.Email);
+            if (userWithEmail != null && userWithEmail.Id != userId)
             {
                 return Conflict();
             }
 
-            if (GetByUsername(user.Username) != null)
+            var userWithUsername = GetByUsername(user.Username);
+            if (userWithUsername != null && userWithUsername.Id != userId)
             {
                 return Conflict();
             }
