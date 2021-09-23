@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RecipeHubApi.Data;
 using RecipeHubApi.Models;
 using RecipeHubApi.Models.DTO;
@@ -92,29 +93,44 @@ namespace RecipeHubApi.Controllers
                 return BadRequest();
             }
 
-            // TODO fix
-            // The instance of entity type 'User' cannot be tracked because another instance with the same key value for {'Id'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the conflicting key values.
+            // Verifica se esse usuário existe
             var originalUser = GetById(userId);
             if (originalUser == null)
             {
                 return NotFound();
             }
 
+            _context.Entry(originalUser).State = EntityState.Detached;
+
+            // Impede que ele escolha um email já usado (a menos que dele próprio)
             var userWithEmail = GetByEmail(user.Email);
             if (userWithEmail != null && userWithEmail.Id != userId)
             {
                 return Conflict();
             }
 
+            if (userWithEmail != null)
+            {
+                _context.Entry(userWithEmail).State = EntityState.Detached;
+            }
+
+            // Impede que ele escolha um username já usado (a menos que dele próprio)
             var userWithUsername = GetByUsername(user.Username);
             if (userWithUsername != null && userWithUsername.Id != userId)
             {
                 return Conflict();
             }
 
+            if (userWithUsername != null)
+            {
+                _context.Entry(userWithUsername).State = EntityState.Detached;
+            }
+
+
             try
             {
                 user.ModifiedOn = DateTime.Now;
+                _context.Entry(user).State = EntityState.Modified;
                 _context.User.Update(user);
                 _context.SaveChanges();
             }
