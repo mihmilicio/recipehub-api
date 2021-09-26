@@ -67,21 +67,34 @@ namespace RecipeHubApi.Controllers
         [HttpGet]
         public List<Recipe> GetAll()
         {
-            return _context.Recipe
+            var recipes = _context.Recipe
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
                 .ToList();
+            
+            foreach (var recipe in recipes)
+            {
+                recipe.Steps = recipe.Steps.OrderBy(i => i.Order).ToList();
+            }
+
+            return recipes;
         }
         
         [HttpGet]
         [Route("user/{userId}")]
         public List<Recipe> GetByUser([FromRoute] string userId)
         {
-            return _context.Recipe
+            var recipes =_context.Recipe
                 .Where(r =>  r.UserId == userId)
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
                 .ToList();
+            foreach (var recipe in recipes)
+            {
+                recipe.Steps = recipe.Steps.OrderBy(i => i.Order).ToList();
+            }
+
+            return recipes;
         }
 
         [HttpGet]
