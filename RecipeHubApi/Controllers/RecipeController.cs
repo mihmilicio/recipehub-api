@@ -92,5 +92,41 @@ namespace RecipeHubApi.Controllers
             recipe.Steps = _context.Step.Where(step => step.RecipeId == recipe.Id).ToList();
             return recipe;
         }
+        
+        [HttpDelete]
+        [Route("{recipeId}")]
+        public IActionResult Delete([FromRoute] string recipeId)
+        {
+            var recipe = _context.Recipe.Find(recipeId);;
+            if (recipe == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var ingredients = _context.Ingredient.Where(ingredient => ingredient.RecipeId == recipe.Id);
+                foreach (var ingredient in ingredients)
+                {
+                    _context.Ingredient.Remove(ingredient);
+                }
+                
+                var steps = _context.Step.Where(step => step.RecipeId == recipe.Id);
+                foreach (var step in steps)
+                {
+                    _context.Step.Remove(step);
+                }
+                
+                _context.Recipe.Remove(recipe);
+                _context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return BadRequest();
+            }
+
+            return NoContent();
+        }
     }
 }
