@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using RecipeHubApi.Data;
 using RecipeHubApi.Models;
@@ -61,9 +63,34 @@ namespace RecipeHubApi.Controllers
             return Created("", recipe);
         }
 
-        private Recipe GetById(string id)
+        [HttpGet]
+        public List<Recipe> GetAll()
         {
-            return _context.Recipe.Find(id);
+            var recipes = _context.Recipe.ToList();
+            var mappedRecipes = new List<Recipe>();
+            foreach (var recipe in recipes)
+            {
+                mappedRecipes.Add(MapProperties(recipe));
+            }
+
+            return mappedRecipes;
+        }
+
+        [HttpGet]
+        [Route("{recipeId}")]
+        public IActionResult GetById([FromRoute] string recipeId)
+        {
+            var recipe = _context.Recipe.Find(recipeId);
+            return recipe is not null
+                ? Ok(MapProperties(recipe))
+                : NotFound();
+        }
+
+        private Recipe MapProperties(Recipe recipe)
+        {
+            recipe.Ingredients = _context.Ingredient.Where(ingredient => ingredient.RecipeId == recipe.Id).ToList();
+            recipe.Steps = _context.Step.Where(step => step.RecipeId == recipe.Id).ToList();
+            return recipe;
         }
     }
 }
