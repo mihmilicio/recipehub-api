@@ -18,6 +18,11 @@ namespace RecipeHubApi.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] Recipe recipe)
         {
+            if (recipe.Id == "")
+            {
+                return UnprocessableEntity();
+            }
+
             if (recipe.UserId == null || UserUtils.GetById(recipe.UserId, _context) == null)
             {
                 return Unauthorized();
