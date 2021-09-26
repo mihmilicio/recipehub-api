@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RecipeHubApi.Data;
 using RecipeHubApi.Models;
 using RecipeHubApi.Utils;
@@ -66,31 +67,21 @@ namespace RecipeHubApi.Controllers
         [HttpGet]
         public List<Recipe> GetAll()
         {
-            var recipes = _context.Recipe.ToList();
-            var mappedRecipes = new List<Recipe>();
-            foreach (var recipe in recipes)
-            {
-                mappedRecipes.Add(MapProperties(recipe));
-            }
-
-            return mappedRecipes;
+            return _context.Recipe
+                .Include(r => r.Ingredients)
+                .Include(r => r.Steps)
+                .ToList();
         }
 
         [HttpGet]
         [Route("{recipeId}")]
         public IActionResult GetById([FromRoute] string recipeId)
         {
-            var recipe = _context.Recipe.Find(recipeId);
-            return recipe is not null
-                ? Ok(MapProperties(recipe))
-                : NotFound();
-        }
-
-        private Recipe MapProperties(Recipe recipe)
-        {
-            recipe.Ingredients = _context.Ingredient.Where(ingredient => ingredient.RecipeId == recipe.Id).ToList();
-            recipe.Steps = _context.Step.Where(step => step.RecipeId == recipe.Id).ToList();
-            return recipe;
+            var recipe = _context.Recipe
+                .Include(r => r.Ingredients)
+                .Include(r => r.Steps)
+                .First(r => r.Id == recipeId);
+            return recipe is not null ? Ok(recipe) : NotFound();
         }
         
         [HttpDelete]
