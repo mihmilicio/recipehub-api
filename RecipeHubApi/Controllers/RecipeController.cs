@@ -72,6 +72,17 @@ namespace RecipeHubApi.Controllers
                 .Include(r => r.Steps)
                 .ToList();
         }
+        
+        [HttpGet]
+        [Route("user/{userId}")]
+        public List<Recipe> GetByUser([FromRoute] string userId)
+        {
+            return _context.Recipe
+                .Where(r =>  r.UserId == userId)
+                .Include(r => r.Ingredients)
+                .Include(r => r.Steps)
+                .ToList();
+        }
 
         [HttpGet]
         [Route("{recipeId}")]
