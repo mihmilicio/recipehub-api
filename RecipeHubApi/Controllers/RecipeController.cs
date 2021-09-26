@@ -41,8 +41,19 @@ namespace RecipeHubApi.Controllers
                 return UnprocessableEntity();
             }
 
-            // TODO delete all ingredients and steps before adding new ones (transaction with add)
-            // TODO check order of steps
+            List<int> stepOrder = recipe.Steps.Select(s => s.Order).ToList();
+            stepOrder.Sort();
+
+            foreach (var item in stepOrder.Select((value, i) => new { i, value }))
+            {
+                var value = item.value;
+                var index = item.i;
+
+                if (value != index)
+                {
+                    return UnprocessableEntity("Steps Order doesn't match");
+                }
+            }
 
             try
             {
@@ -71,7 +82,7 @@ namespace RecipeHubApi.Controllers
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
                 .ToList();
-            
+
             foreach (var recipe in recipes)
             {
                 recipe.Steps = recipe.Steps.OrderBy(i => i.Order).ToList();
@@ -79,13 +90,13 @@ namespace RecipeHubApi.Controllers
 
             return recipes;
         }
-        
+
         [HttpGet]
         [Route("user/{userId}")]
         public List<Recipe> GetByUser([FromRoute] string userId)
         {
-            var recipes =_context.Recipe
-                .Where(r =>  r.UserId == userId)
+            var recipes = _context.Recipe
+                .Where(r => r.UserId == userId)
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
                 .ToList();
@@ -107,12 +118,13 @@ namespace RecipeHubApi.Controllers
                 .First(r => r.Id == recipeId);
             return recipe is not null ? Ok(recipe) : NotFound();
         }
-        
+
         [HttpDelete]
         [Route("{recipeId}")]
         public IActionResult Delete([FromRoute] string recipeId)
         {
-            var recipe = _context.Recipe.Find(recipeId);;
+            var recipe = _context.Recipe.Find(recipeId);
+            ;
             if (recipe == null)
             {
                 return NotFound();
@@ -125,13 +137,13 @@ namespace RecipeHubApi.Controllers
                 {
                     _context.Ingredient.Remove(ingredient);
                 }
-                
+
                 var steps = _context.Step.Where(step => step.RecipeId == recipe.Id);
                 foreach (var step in steps)
                 {
                     _context.Step.Remove(step);
                 }
-                
+
                 _context.Recipe.Remove(recipe);
                 _context.SaveChanges();
             }
