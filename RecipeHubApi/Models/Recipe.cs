@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipeHubApi.Models
 {
@@ -13,15 +14,20 @@ namespace RecipeHubApi.Models
         }
 
         [Required] public string Name { get; set; }
-        [Required] public string Description { get; set; }
+        public string Description { get; set; }
         public int Servings { get; set; }
         public int Time { get; set; }
 
-        public ICollection<Ingredient> Ingredients { get; set; }
-        public ICollection<Step> Steps { get; set; }
+        [ForeignKey("UserId")] public string UserId { get; set; }
+
+        public virtual User User { get; set; }
+
+        public List<Ingredient> Ingredients { get; set; }
+        public List<Step> Steps { get; set; }
 
         public DateTime CreatedOn { get; set; }
         public DateTime? ModifiedOn { get; set; }
+
         public string Id { get; set; }
     }
 }
