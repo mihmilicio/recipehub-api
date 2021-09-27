@@ -41,18 +41,12 @@ namespace RecipeHubApi.Controllers
                 return UnprocessableEntity();
             }
 
-            List<int> stepOrder = recipe.Steps.Select(s => s.Order).ToList();
+            var stepOrder = recipe.Steps.Select(s => s.Order).ToList();
             stepOrder.Sort();
 
-            foreach (var item in stepOrder.Select((value, i) => new { i, value }))
+            if (stepOrder.Select((value, i) => new { i, value }).Any(item => item.value != item.i))
             {
-                var value = item.value;
-                var index = item.i;
-
-                if (value != index)
-                {
-                    return UnprocessableEntity("Steps Order doesn't match");
-                }
+                return UnprocessableEntity("Steps Order doesn't match");
             }
 
             try
@@ -108,14 +102,30 @@ namespace RecipeHubApi.Controllers
             return recipes;
         }
 
-        [HttpGet]
-        [Route("{recipeId}")]
-        public IActionResult GetById([FromRoute] string recipeId)
+        private Recipe GetById(string id)
         {
-            var recipe = _context.Recipe
+            return _context.Recipe
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
-                .First(r => r.Id == recipeId);
+                .First(r => r.Id == id);
+        }
+
+        private Ingredient GetIngredientById(string id)
+        {
+            return _context.Ingredient.Find(id);
+        }
+
+        private Step GetStepById(string id)
+        {
+            return _context.Step.Find(id);
+        }
+
+
+        [HttpGet]
+        [Route("{recipeId}")]
+        public IActionResult GetByIdRequest([FromRoute] string recipeId)
+        {
+            var recipe = GetById(recipeId);
             return recipe is not null ? Ok(recipe) : NotFound();
         }
 
@@ -124,7 +134,7 @@ namespace RecipeHubApi.Controllers
         public IActionResult Delete([FromRoute] string recipeId)
         {
             var recipe = _context.Recipe.Find(recipeId);
-            ;
+
             if (recipe == null)
             {
                 return NotFound();
@@ -154,6 +164,128 @@ namespace RecipeHubApi.Controllers
             }
 
             return NoContent();
+        }
+
+        private void SetStates(Recipe recipe, EntityState state)
+        {
+            _context.Entry(recipe).State = state;
+            foreach (var ingredient in recipe.Ingredients)
+            {
+                _context.Entry(ingredient).State = state;
+            }
+
+            foreach (var step in recipe.Steps)
+            {
+                _context.Entry(step).State = state;
+            }
+        }
+
+        // Apenas para debugging
+        [HttpGet]
+        [Route("ingredients")]
+        public IActionResult GetAllIngredients()
+        {
+            return Ok(_context.Ingredient.ToList());
+        }
+
+        // Apenas para debugging
+        [HttpGet]
+        [Route("steps")]
+        public IActionResult GetAllSteps()
+        {
+            return Ok(_context.Step.ToList());
+        }
+
+        [HttpPut]
+        [Route("{recipeId}")]
+        public IActionResult Update([FromBody] Recipe recipe, [FromRoute] string recipeId)
+        {
+            if (recipeId != recipe.Id || recipeId is null or "")
+            {
+                return UnprocessableEntity();
+            }
+
+            var originalRecipe = GetById(recipeId);
+            if (originalRecipe == null)
+            {
+                return NotFound();
+            }
+
+            if (recipe.UserId == null || recipe.UserId != originalRecipe.UserId)
+            {
+                return Unauthorized();
+            }
+
+            if (recipe.Ingredients == null || recipe.Ingredients.Count == 0)
+            {
+                return UnprocessableEntity();
+            }
+
+            if (recipe.Steps == null || recipe.Steps.Count == 0)
+            {
+                return UnprocessableEntity();
+            }
+
+            var stepOrder = recipe.Steps.Select(s => s.Order).ToList();
+            stepOrder.Sort();
+
+            if (stepOrder.Select((value, i) => new { i, value }).Any(item => item.value != item.i))
+            {
+                return UnprocessableEntity("Steps Order doesn't match");
+            }
+
+            SetStates(originalRecipe, EntityState.Detached);
+
+            var originalIngredients = originalRecipe.Ingredients.Select(i => i.Id).ToList();
+            var newIngredients = recipe.Ingredients.Select(i => i.Id).ToList();
+
+            var ingredientsToDelete = originalIngredients.Except(newIngredients).ToList();
+            var ingredientsToAdd = newIngredients.Except(originalIngredients).ToList();
+
+            ingredientsToDelete.ForEach(i => _context.Entry(GetIngredientById(i)).State = EntityState.Deleted);
+            ingredientsToAdd.ForEach(i =>
+            {
+                var match = recipe.Ingredients.Find(x => x.Id == i);
+                if (match != null)
+                    _context.Entry(match).State = EntityState.Added;
+            });
+
+
+            var originalSteps = originalRecipe.Steps.Select(i => i.Id).ToList();
+            var newSteps = recipe.Steps.Select(i => i.Id).ToList();
+
+            var stepsToDelete = originalSteps.Except(newSteps).ToList();
+            var stepsToAdd = newSteps.Except(originalSteps).ToList();
+
+            stepsToDelete.ForEach(s => _context.Entry(GetStepById(s)).State = EntityState.Deleted);
+            stepsToAdd.ForEach(s =>
+            {
+                var match = recipe.Steps.Find(x => x.Id == s);
+                if (match != null)
+                    _context.Entry(match).State = EntityState.Added;
+            });
+
+            try
+            {
+                recipe.CreatedOn = originalRecipe.CreatedOn;
+                recipe.ModifiedOn = DateTime.Now;
+                recipe.User = _context.User.Find(recipe.UserId);
+                _context.Recipe.Update(recipe);
+                _context.SaveChanges();
+            }
+            catch (ArgumentException e)
+            {
+                // Capta IDs repetidos
+                Debug.WriteLine(e);
+                return Conflict(e.Message);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return BadRequest(e.Message);
+            }
+
+            return Ok(recipe);
         }
     }
 }

@@ -24,13 +24,17 @@ namespace RecipeHubApi
             services.AddCors(
                 options =>
                 {
-                    options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+                    options.AddPolicy("CorsPolicy",
+                        builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
                 }
             );
-            
+
             services.AddDbContext<DataContext>(
-                options => options.UseInMemoryDatabase("database")
-            );
+                options =>
+                {
+                    options.UseInMemoryDatabase("database");
+                    options.EnableSensitiveDataLogging();
+                });
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -43,7 +47,7 @@ namespace RecipeHubApi
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseCors("CorsPolicy");
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
