@@ -58,5 +58,30 @@ namespace RecipeHubApi.Controllers
                 .Include(a => a.User)
                 .ToList();
         }
+        
+        [HttpDelete]
+        [Route("{articleId}")]
+        public IActionResult Delete([FromRoute] string articleId)
+        {
+            var article = _context.Article.Find(articleId);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _context.Article.Remove(article);
+                _context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return BadRequest();
+            }
+
+            return NoContent();
+        }
     }
 }
