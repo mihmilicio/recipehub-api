@@ -15,5 +15,7 @@ namespace RecipeHubApi.Data
         public DbSet<Recipe> Recipe { get; set; }
         public DbSet<Ingredient> Ingredient { get; set; }
         public DbSet<Step> Step { get; set; }
+        public DbSet<Article> Article { get; set; }
+
     }
 }
