@@ -36,19 +36,6 @@ namespace RecipeHubApi.Controllers
                 return UnprocessableEntity();
             }
             
-            // article.Recipes = _context.Recipe
-            //     .Where(recipe => article.Recipes.Select(r => r.Id).ToList().Contains(recipe.Id)).ToList();
-            
-            // foreach (var articleRecipe in article.ArticleRecipes)
-            // {
-                // var recipe = _context.Recipe.Find(articleRecipe.RecipeId);
-                // if (recipe is null)
-                // {
-                //     return UnprocessableEntity();
-                // }
-                // _context.Entry(recipe).State = EntityState.Detached;
-            // }
-
             try
             {
                 _context.Article.Add(article);
