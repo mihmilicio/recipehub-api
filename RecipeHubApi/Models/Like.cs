@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace RecipeHubApi.Models
 {
@@ -12,9 +13,9 @@ namespace RecipeHubApi.Models
         [Column(Order = 2)]
         public string UserId { get; set; }
 
-        [ForeignKey("ArticleId")]
+        [ForeignKey("ArticleId")] [JsonIgnore]
         public Article Article { get; set; }
-        [ForeignKey("UserId")]
+        [ForeignKey("UserId")] [JsonIgnore]
         public User User { get; set; }
     }
 }
