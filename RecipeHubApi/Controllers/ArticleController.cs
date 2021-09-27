@@ -65,7 +65,7 @@ namespace RecipeHubApi.Controllers
                 return UnprocessableEntity();
             }
 
-            var originalArticle = GetById(articleId);
+            var originalArticle = GetById(articleId, null);
             if (originalArticle == null)
             {
                 return NotFound();
@@ -130,34 +130,34 @@ namespace RecipeHubApi.Controllers
         }
         
         [HttpGet]
-        public List<Article> GetAll()
+        public List<Article> GetAll([FromQuery] string userId)
         {
             var articles = _context.Article
                 .Include(a => a.User)
                 .Include(a => a.ArticleRecipes)
                 .ToList();
 
-            return articles.Select(IncludeInfo).ToList();
+            return articles.Select(article => IncludeInfo(article, userId)).ToList();
         }
         
-        private Article GetById(string articleId)
+        private Article GetById(string articleId, string userId)
         {
             var article = _context.Article
                 .Include(a => a.User)
                 .Include(a => a.ArticleRecipes)
                 .FirstOrDefault(a => a.Id == articleId);
-            return IncludeInfo(article);
+            return IncludeInfo(article, userId);
         }
         
         [HttpGet]
         [Route("{articleId}")]
-        public IActionResult GetByIdRequest([FromRoute] string articleId)
+        public IActionResult GetByIdRequest([FromRoute] string articleId, [FromQuery] string userId)
         {
-            var article = GetById(articleId);
+            var article = GetById(articleId, userId);
             return article is not null ? Ok(article) : NotFound();
         }
 
-        private Article IncludeInfo(Article article)
+        private Article IncludeInfo(Article article, string userId)
         {
             article.Recipes ??= new List<Recipe>();
             foreach (var articleRecipe in article.ArticleRecipes)
@@ -172,6 +172,12 @@ namespace RecipeHubApi.Controllers
             }
 
             article.LikeCount = _context.Like.Count(l => l.ArticleId == article.Id);
+
+            if (userId is not null)
+            {
+                article.IsLiked =
+                    _context.Like.FirstOrDefault(l => l.ArticleId == article.Id && l.UserId == userId) is not null;
+            }
         
             return article;
         }

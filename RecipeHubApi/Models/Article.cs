@@ -26,5 +26,6 @@ namespace RecipeHubApi.Models
         
         [JsonIgnore] public List<Like> Likes { get; set; }
         public int LikeCount { get; set; }
+        public bool IsLiked { get; set; }
     }
 }
