@@ -59,6 +59,15 @@ namespace RecipeHubApi.Controllers
                 .ToList();
         }
         
+        [HttpGet]
+        [Route("{articleId}")]
+        public Article GetById([FromRoute] string articleId)
+        {
+            return _context.Article
+                .Include(a => a.User)
+                .FirstOrDefault(a => a.Id == articleId);
+        }
+        
         [HttpDelete]
         [Route("{articleId}")]
         public IActionResult Delete([FromRoute] string articleId)
