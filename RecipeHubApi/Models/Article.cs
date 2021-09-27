@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,6 +15,8 @@ namespace RecipeHubApi.Models
 
         [Required] public string Name { get; set; }
         public string Description { get; set; }
+        public ICollection<ArticleRecipe> ArticleRecipes { get; set; }
+        public List<Recipe> Recipes { get; set; }
         [ForeignKey("UserId")] public string UserId { get; set; }
         public virtual User User { get; set; }
         public DateTime CreatedOn { get; set; }

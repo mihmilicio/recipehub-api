@@ -30,7 +30,25 @@ namespace RecipeHubApi.Controllers
             {
                 return Unauthorized();
             }
+
+            if (article.ArticleRecipes is null || article.ArticleRecipes.Count == 0)
+            {
+                return UnprocessableEntity();
+            }
             
+            // article.Recipes = _context.Recipe
+            //     .Where(recipe => article.Recipes.Select(r => r.Id).ToList().Contains(recipe.Id)).ToList();
+            
+            // foreach (var articleRecipe in article.ArticleRecipes)
+            // {
+                // var recipe = _context.Recipe.Find(articleRecipe.RecipeId);
+                // if (recipe is null)
+                // {
+                //     return UnprocessableEntity();
+                // }
+                // _context.Entry(recipe).State = EntityState.Detached;
+            // }
+
             try
             {
                 _context.Article.Add(article);
@@ -99,18 +117,40 @@ namespace RecipeHubApi.Controllers
         [HttpGet]
         public List<Article> GetAll()
         {
-            return _context.Article
+            var articles = _context.Article
                 .Include(a => a.User)
+                .Include(a => a.ArticleRecipes)
                 .ToList();
+
+            return articles.Select(IncludeRecipes).ToList();
         }
         
         [HttpGet]
         [Route("{articleId}")]
         public Article GetById([FromRoute] string articleId)
         {
-            return _context.Article
+            var article = _context.Article
                 .Include(a => a.User)
+                .Include(a => a.ArticleRecipes)
                 .FirstOrDefault(a => a.Id == articleId);
+            return IncludeRecipes(article);
+        }
+
+        private Article IncludeRecipes(Article article)
+        {
+            article.Recipes ??= new List<Recipe>();
+            foreach (var articleRecipe in article.ArticleRecipes)
+            {
+                var recipe = _context.Recipe.Include(r => r.Ingredients)
+                    .Include(r => r.Steps)
+                    .FirstOrDefault(r => r.Id == articleRecipe.RecipeId);
+                if (recipe is not null)
+                {
+                    article.Recipes.Add(recipe);
+                }
+            }
+        
+            return article;
         }
         
         [HttpDelete]
