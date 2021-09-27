@@ -107,7 +107,7 @@ namespace RecipeHubApi.Controllers
             return _context.Recipe
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
-                .First(r => r.Id == id);
+                .FirstOrDefault(r => r.Id == id);
         }
 
         private Ingredient GetIngredientById(string id)
