@@ -92,7 +92,7 @@ namespace RecipeHubApi.Controllers
             articleRecipesToDelete.ForEach(articleRecipeId => _context.Entry(_context.ArticleRecipe.Find(articleRecipeId)).State = EntityState.Deleted);
             articleRecipesToAdd.ForEach(articleRecipeId =>
             {
-                var match = article.ArticleRecipes.ToList().Find(x => x.Id == articleRecipeId);
+                var match = article.ArticleRecipes.Find(x => x.Id == articleRecipeId);
                 if (match != null)
                     _context.Entry(match).State = EntityState.Added;
             });

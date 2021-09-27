@@ -15,7 +15,7 @@ namespace RecipeHubApi.Models
 
         [Required] public string Name { get; set; }
         public string Description { get; set; }
-        public ICollection<ArticleRecipe> ArticleRecipes { get; set; }
+        public List<ArticleRecipe> ArticleRecipes { get; set; }
         public List<Recipe> Recipes { get; set; }
         [ForeignKey("UserId")] public string UserId { get; set; }
         public virtual User User { get; set; }

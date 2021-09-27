@@ -19,7 +19,7 @@ namespace RecipeHubApi.Models
         public int Servings { get; set; }
         public int Time { get; set; }
         
-        [JsonIgnore] public ICollection<Article> Articles { get; set; }
+        [JsonIgnore] public List<Article> Articles { get; set; }
 
         [ForeignKey("UserId")] public string UserId { get; set; }
 
