@@ -166,6 +166,10 @@ namespace RecipeHubApi.Controllers
 
             try
             {
+                foreach (var articleRecipe in article.ArticleRecipes)
+                {
+                    _context.ArticleRecipe.Remove(articleRecipe);
+                }
                 _context.Article.Remove(article);
                 _context.SaveChanges();
             }
