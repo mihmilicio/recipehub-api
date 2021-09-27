@@ -137,7 +137,7 @@ namespace RecipeHubApi.Controllers
                 .Include(a => a.ArticleRecipes)
                 .ToList();
 
-            return articles.Select(IncludeRecipes).ToList();
+            return articles.Select(IncludeInfo).ToList();
         }
         
         private Article GetById(string articleId)
@@ -146,7 +146,7 @@ namespace RecipeHubApi.Controllers
                 .Include(a => a.User)
                 .Include(a => a.ArticleRecipes)
                 .FirstOrDefault(a => a.Id == articleId);
-            return IncludeRecipes(article);
+            return IncludeInfo(article);
         }
         
         [HttpGet]
@@ -157,7 +157,7 @@ namespace RecipeHubApi.Controllers
             return article is not null ? Ok(article) : NotFound();
         }
 
-        private Article IncludeRecipes(Article article)
+        private Article IncludeInfo(Article article)
         {
             article.Recipes ??= new List<Recipe>();
             foreach (var articleRecipe in article.ArticleRecipes)
@@ -170,6 +170,8 @@ namespace RecipeHubApi.Controllers
                     article.Recipes.Add(recipe);
                 }
             }
+
+            article.LikeCount = _context.Like.Count(l => l.ArticleId == article.Id);
         
             return article;
         }
@@ -192,6 +194,71 @@ namespace RecipeHubApi.Controllers
                     _context.ArticleRecipe.Remove(articleRecipe);
                 }
                 _context.Article.Remove(article);
+                _context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return BadRequest();
+            }
+
+            return NoContent();
+        }
+
+        [HttpPost]
+        [Route("{articleId}/like")]
+        public IActionResult Like([FromRoute] string articleId, [FromQuery] string userId)
+        {
+            if (articleId is null || userId is null)
+            {
+                return BadRequest();
+            }
+
+            var like = new Like
+            {
+                ArticleId = articleId,
+                UserId = userId
+            };
+            
+            try
+            {
+                _context.Like.Add(like);
+                _context.SaveChanges();
+            }
+            catch (ArgumentException e)
+            {
+                // Capta IDs repetidos
+                Debug.WriteLine(e);
+                return Conflict(e.Message);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return BadRequest(e.Message);
+            }
+
+            return Created("", like);
+        }
+        
+        [HttpDelete]
+        [Route("{articleId}/like")]
+        public IActionResult DeleteLike([FromRoute] string articleId, [FromQuery] string userId)
+        {
+            if (articleId is null || userId is null)
+            {
+                return BadRequest();
+            }
+
+            var like = _context.Like.FirstOrDefault(l => l.ArticleId == articleId && l.UserId == userId);
+            
+            if (like == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _context.Like.Remove(like);
                 _context.SaveChanges();
             }
             catch (Exception e)

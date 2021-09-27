@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace RecipeHubApi.Models
 {
@@ -24,5 +26,7 @@ namespace RecipeHubApi.Models
         public DateTime? ModifiedOn { get; set; }
 
         public string Id { get; set; }
+        
+        [JsonIgnore] public List<Like> Likes { get; set; }
     }
 }
