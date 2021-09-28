@@ -16,9 +16,9 @@ namespace RecipeHubApi.Models
 
         [Required] public string Name { get; set; }
         public string Description { get; set; }
-        public int Servings { get; set; }
-        public int Time { get; set; }
-        
+        public int? Servings { get; set; }
+        public int? Time { get; set; }
+
         [JsonIgnore] public List<Article> Articles { get; set; }
 
         [ForeignKey("UserId")] public string UserId { get; set; }
