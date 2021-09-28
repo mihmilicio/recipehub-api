@@ -178,7 +178,9 @@ namespace RecipeHubApi.Controllers
                 article.IsLiked =
                     _context.Like.FirstOrDefault(l => l.ArticleId == article.Id && l.UserId == userId) is not null;
             }
-        
+            
+            article.CommentCount = _context.Comment.Count(c => c.ArticleId == article.Id);
+
             return article;
         }
         
