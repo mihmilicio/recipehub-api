@@ -61,6 +61,55 @@ namespace RecipeHubApi.Controllers
             return Created("", comment);
         }
         
+        [HttpPut]
+        [Route("{commentId}")]
+        public IActionResult Update([FromBody] Comment comment, [FromRoute] string commentId, [FromRoute] string articleId)
+        {
+            if (commentId is null or "" || commentId != comment.Id )
+            {
+                return UnprocessableEntity();
+            }
+
+            var originalComment = GetById(commentId);
+            if (originalComment == null)
+            {
+                return NotFound();
+            }
+
+            if (comment.UserId == null || comment.UserId != originalComment.UserId)
+            {
+                return Unauthorized();
+            }
+            
+            if (comment.ArticleId == null || comment.ArticleId != originalComment.ArticleId)
+            {
+                return UnprocessableEntity();
+            }
+            
+            _context.Entry(originalComment).State = EntityState.Detached;
+            
+            try
+            {
+                comment.CreatedOn = originalComment.CreatedOn;
+                comment.ModifiedOn = DateTime.Now;
+                _context.Comment.Update(comment);
+                _context.SaveChanges();
+            }
+            catch (ArgumentException e)
+            {
+                // Capta IDs repetidos
+                Debug.WriteLine(e);
+                return Conflict(e.Message);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return BadRequest(e.Message);
+            }
+
+            return Ok(comment);
+        }
+        
         [HttpGet]
         public List<Comment> GetAll([FromRoute] string articleId)
         {
