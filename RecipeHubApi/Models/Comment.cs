@@ -19,7 +19,7 @@ namespace RecipeHubApi.Models
         public string UserId { get; set; }
         [ForeignKey("ArticleId")] [JsonIgnore]
         public Article Article { get; set; }
-        [ForeignKey("UserId")] [JsonIgnore]
+        [ForeignKey("UserId")]
         public User User { get; set; }
         
         [Required]
