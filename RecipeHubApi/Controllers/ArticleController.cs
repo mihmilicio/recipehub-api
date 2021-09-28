@@ -146,7 +146,7 @@ namespace RecipeHubApi.Controllers
                 .Include(a => a.User)
                 .Include(a => a.ArticleRecipes)
                 .FirstOrDefault(a => a.Id == articleId);
-            return IncludeInfo(article, userId);
+            return article is not null ?  IncludeInfo(article, userId) : null;
         }
         
         [HttpGet]
@@ -188,7 +188,9 @@ namespace RecipeHubApi.Controllers
         [Route("{articleId}")]
         public IActionResult Delete([FromRoute] string articleId)
         {
-            var article = _context.Article.Find(articleId);
+            var article = _context.Article
+                .Include(a => a.ArticleRecipes)
+                .FirstOrDefault(a => a.Id == articleId);
 
             if (article == null)
             {
