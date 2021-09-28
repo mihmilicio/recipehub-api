@@ -27,6 +27,7 @@ namespace RecipeHubApi.Models
 
         public string Id { get; set; }
         
-        [JsonIgnore] public List<Like> Likes { get; set; }
+        [JsonIgnore] public List<Like> Likes { get; set; }        
+        [JsonIgnore] public List<Comment> Comments { get; set; }
     }
 }

@@ -23,6 +23,7 @@ namespace RecipeHubApi.Data
         public DbSet<Article> Article { get; set; }
         public DbSet<ArticleRecipe> ArticleRecipe { get; set; }
         public DbSet<Like> Like { get; set; }
+        public DbSet<Comment> Comment { get; set; }
 
     }
 }
