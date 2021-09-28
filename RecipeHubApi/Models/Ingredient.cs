@@ -8,7 +8,7 @@ namespace RecipeHubApi.Models
     {
         [Required] public string Name { get; set; }
         public string Unit { get; set; }
-        public decimal Quantity { get; set; }
+        public decimal? Quantity { get; set; }
 
         public string RecipeId { get; set; }
 
