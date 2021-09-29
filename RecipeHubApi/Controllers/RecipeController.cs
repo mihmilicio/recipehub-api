@@ -70,9 +70,10 @@ namespace RecipeHubApi.Controllers
         }
 
         [HttpGet]
-        public List<Recipe> GetAll()
+        public List<Recipe> GetAll([FromQuery] string searchTerm)
         {
             var recipes = _context.Recipe
+                .Where(x => searchTerm != null && searchTerm != "" && (x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Description.ToLower().Replace("\n", " ").Contains(searchTerm.ToLower())))
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
                 .ToList();
