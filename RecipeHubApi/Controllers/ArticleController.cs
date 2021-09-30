@@ -17,7 +17,7 @@ namespace RecipeHubApi.Controllers
     {
         private readonly DataContext _context;
         public ArticleController(DataContext context) => _context = context;
-        
+
         [HttpPost]
         public IActionResult Create([FromBody] Article article)
         {
@@ -35,7 +35,7 @@ namespace RecipeHubApi.Controllers
             {
                 return UnprocessableEntity();
             }
-            
+
             try
             {
                 _context.Article.Add(article);
@@ -55,7 +55,7 @@ namespace RecipeHubApi.Controllers
 
             return Created("", article);
         }
-        
+
         [HttpPut]
         [Route("{articleId}")]
         public IActionResult Update([FromBody] Article article, [FromRoute] string articleId)
@@ -75,12 +75,12 @@ namespace RecipeHubApi.Controllers
             {
                 return Unauthorized();
             }
-            
+
             if (article.ArticleRecipes is null || article.ArticleRecipes.Count == 0)
             {
                 return UnprocessableEntity();
             }
-            
+
             SetStates(originalArticle, EntityState.Detached);
 
             var originalArticleRecipes = originalArticle.ArticleRecipes.Select(i => i.Id).ToList();
@@ -89,14 +89,15 @@ namespace RecipeHubApi.Controllers
             var articleRecipesToDelete = originalArticleRecipes.Except(newArticleRecipes).ToList();
             var articleRecipesToAdd = newArticleRecipes.Except(originalArticleRecipes).ToList();
 
-            articleRecipesToDelete.ForEach(articleRecipeId => _context.Entry(_context.ArticleRecipe.Find(articleRecipeId)).State = EntityState.Deleted);
+            articleRecipesToDelete.ForEach(articleRecipeId =>
+                _context.Entry(_context.ArticleRecipe.Find(articleRecipeId)).State = EntityState.Deleted);
             articleRecipesToAdd.ForEach(articleRecipeId =>
             {
                 var match = article.ArticleRecipes.Find(x => x.Id == articleRecipeId);
                 if (match != null)
                     _context.Entry(match).State = EntityState.Added;
             });
-            
+
             try
             {
                 article.CreatedOn = originalArticle.CreatedOn;
@@ -119,7 +120,7 @@ namespace RecipeHubApi.Controllers
 
             return Ok(article);
         }
-        
+
         private void SetStates(Article article, EntityState state)
         {
             _context.Entry(article).State = state;
@@ -128,7 +129,7 @@ namespace RecipeHubApi.Controllers
                 _context.Entry(articleRecipe).State = state;
             }
         }
-        
+
         [HttpGet]
         public List<Article> GetAll([FromQuery] string userId)
         {
@@ -139,16 +140,29 @@ namespace RecipeHubApi.Controllers
 
             return articles.Select(article => IncludeInfo(article, userId)).ToList();
         }
-        
+
+        [HttpGet]
+        [Route("user/{userId}")]
+        public List<Article> GetByUser([FromRoute] string userId)
+        {
+            var articles = _context.Article
+                .Where(a => a.UserId == userId)
+                .Include(a => a.User)
+                .Include(a => a.ArticleRecipes)
+                .ToList();
+
+            return articles.Select(article => IncludeInfo(article, userId)).ToList();
+        }
+
         private Article GetById(string articleId, string userId)
         {
             var article = _context.Article
                 .Include(a => a.User)
                 .Include(a => a.ArticleRecipes)
                 .FirstOrDefault(a => a.Id == articleId);
-            return article is not null ?  IncludeInfo(article, userId) : null;
+            return article is not null ? IncludeInfo(article, userId) : null;
         }
-        
+
         [HttpGet]
         [Route("{articleId}")]
         public IActionResult GetByIdRequest([FromRoute] string articleId, [FromQuery] string userId)
@@ -178,12 +192,12 @@ namespace RecipeHubApi.Controllers
                 article.IsLiked =
                     _context.Like.FirstOrDefault(l => l.ArticleId == article.Id && l.UserId == userId) is not null;
             }
-            
+
             article.CommentCount = _context.Comment.Count(c => c.ArticleId == article.Id);
 
             return article;
         }
-        
+
         [HttpDelete]
         [Route("{articleId}")]
         public IActionResult Delete([FromRoute] string articleId)
@@ -203,6 +217,7 @@ namespace RecipeHubApi.Controllers
                 {
                     _context.ArticleRecipe.Remove(articleRecipe);
                 }
+
                 _context.Article.Remove(article);
                 _context.SaveChanges();
             }
@@ -229,7 +244,7 @@ namespace RecipeHubApi.Controllers
                 ArticleId = articleId,
                 UserId = userId
             };
-            
+
             try
             {
                 _context.Like.Add(like);
@@ -249,7 +264,7 @@ namespace RecipeHubApi.Controllers
 
             return Created("", like);
         }
-        
+
         [HttpDelete]
         [Route("{articleId}/like")]
         public IActionResult DeleteLike([FromRoute] string articleId, [FromQuery] string userId)
@@ -260,7 +275,7 @@ namespace RecipeHubApi.Controllers
             }
 
             var like = _context.Like.FirstOrDefault(l => l.ArticleId == articleId && l.UserId == userId);
-            
+
             if (like == null)
             {
                 return NotFound();
