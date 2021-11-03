@@ -32,7 +32,7 @@ namespace RecipeHubApi
             services.AddDbContext<DataContext>(
                 options =>
                 {
-                    options.UseInMemoryDatabase("database");
+                    options.UseSqlServer(Configuration.GetConnectionString("Azure"));
                     options.EnableSensitiveDataLogging();
                 });
 
