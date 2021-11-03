@@ -93,13 +93,19 @@ namespace RecipeHubApi.Controllers
 
         [HttpGet]
         [Route("user/{userId}")]
-        public List<Recipe> GetByUser([FromRoute] string userId)
+        public List<Recipe> GetByUser([FromRoute] string userId, [FromQuery] string searchTerm)
         {
-            var recipes = _context.Recipe
+            var recipeQueryable = string.IsNullOrEmpty(searchTerm)
+                ? _context.Recipe
+                : _context.Recipe
+                    .Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Description.ToLower().Replace("\n", " ").Contains(searchTerm.ToLower()));
+
+            var recipes = recipeQueryable
                 .Where(r => r.UserId == userId)
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
                 .ToList();
+            
             foreach (var recipe in recipes)
             {
                 recipe.Steps = recipe.Steps.OrderBy(i => i.Order).ToList();
