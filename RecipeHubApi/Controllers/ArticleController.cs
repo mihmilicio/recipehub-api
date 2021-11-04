@@ -31,7 +31,7 @@ namespace RecipeHubApi.Controllers
                 return Unauthorized();
             }
 
-            if (article.ArticleRecipes is null || article.ArticleRecipes.Count == 0)
+            if (article.Recipes is null || article.Recipes.Count == 0)
             {
                 return UnprocessableEntity();
             }
@@ -76,24 +76,24 @@ namespace RecipeHubApi.Controllers
                 return Unauthorized();
             }
 
-            if (article.ArticleRecipes is null || article.ArticleRecipes.Count == 0)
+            if (article.Recipes is null || article.Recipes.Count == 0)
             {
                 return UnprocessableEntity();
             }
 
             SetStates(originalArticle, EntityState.Detached);
 
-            var originalArticleRecipes = originalArticle.ArticleRecipes.Select(i => i.Id).ToList();
-            var newArticleRecipes = article.ArticleRecipes.Select(i => i.Id).ToList();
+            var originalArticleRecipes = originalArticle.Recipes.ToList();
+            var newArticleRecipes = article.Recipes.ToList();
 
             var articleRecipesToDelete = originalArticleRecipes.Except(newArticleRecipes).ToList();
             var articleRecipesToAdd = newArticleRecipes.Except(originalArticleRecipes).ToList();
 
             articleRecipesToDelete.ForEach(articleRecipeId =>
-                _context.Entry(_context.ArticleRecipe.Find(articleRecipeId)).State = EntityState.Deleted);
-            articleRecipesToAdd.ForEach(articleRecipeId =>
+                _context.Entry(_context.Recipe.Find(articleRecipeId)).State = EntityState.Deleted);
+            articleRecipesToAdd.ForEach(articleRecipe =>
             {
-                var match = article.ArticleRecipes.Find(x => x.Id == articleRecipeId);
+                var match = article.Recipes.Find(x => x == articleRecipe);
                 if (match != null)
                     _context.Entry(match).State = EntityState.Added;
             });
@@ -124,7 +124,7 @@ namespace RecipeHubApi.Controllers
         private void SetStates(Article article, EntityState state)
         {
             _context.Entry(article).State = state;
-            foreach (var articleRecipe in article.ArticleRecipes)
+            foreach (var articleRecipe in article.Recipes)
             {
                 _context.Entry(articleRecipe).State = state;
             }
@@ -135,7 +135,7 @@ namespace RecipeHubApi.Controllers
         {
             var articles = _context.Article
                 .Include(a => a.User)
-                .Include(a => a.ArticleRecipes)
+                .Include(a => a.Recipes)
                 .ToList();
 
             return articles.Select(article => IncludeInfo(article, userId)).ToList();
@@ -148,7 +148,7 @@ namespace RecipeHubApi.Controllers
             var articles = _context.Article
                 .Where(a => a.UserId == userId)
                 .Include(a => a.User)
-                .Include(a => a.ArticleRecipes)
+                .Include(a => a.Recipes)
                 .ToList();
 
             return articles.Select(article => IncludeInfo(article, userId)).ToList();
@@ -158,7 +158,7 @@ namespace RecipeHubApi.Controllers
         {
             var article = _context.Article
                 .Include(a => a.User)
-                .Include(a => a.ArticleRecipes)
+                .Include(a => a.Recipes)
                 .FirstOrDefault(a => a.Id == articleId);
             return article is not null ? IncludeInfo(article, userId) : null;
         }
@@ -173,15 +173,15 @@ namespace RecipeHubApi.Controllers
 
         private Article IncludeInfo(Article article, string userId)
         {
-            article.Recipes ??= new List<Recipe>();
-            foreach (var articleRecipe in article.ArticleRecipes)
+            // article.Recipes ??= new List<Recipe>();
+            foreach (var articleRecipe in article.Recipes)
             {
                 var recipe = _context.Recipe.Include(r => r.Ingredients)
                     .Include(r => r.Steps)
-                    .FirstOrDefault(r => r.Id == articleRecipe.RecipeId);
+                    .FirstOrDefault(r => r.Id == articleRecipe.Id);
                 if (recipe is not null)
                 {
-                    article.Recipes.Add(recipe);
+                    // article.Recipes.Add(recipe);
                 }
             }
 
@@ -203,7 +203,7 @@ namespace RecipeHubApi.Controllers
         public IActionResult Delete([FromRoute] string articleId)
         {
             var article = _context.Article
-                .Include(a => a.ArticleRecipes)
+                .Include(a => a.Recipes)
                 .FirstOrDefault(a => a.Id == articleId);
 
             if (article == null)
@@ -213,9 +213,9 @@ namespace RecipeHubApi.Controllers
 
             try
             {
-                foreach (var articleRecipe in article.ArticleRecipes)
+                foreach (var articleRecipe in article.Recipes)
                 {
-                    _context.ArticleRecipe.Remove(articleRecipe);
+                    _context.Recipe.Remove(articleRecipe);
                 }
 
                 _context.Article.Remove(article);

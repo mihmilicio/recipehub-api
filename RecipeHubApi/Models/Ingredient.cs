@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace RecipeHubApi.Models
@@ -12,7 +11,7 @@ namespace RecipeHubApi.Models
 
         public string RecipeId { get; set; }
 
-        [ForeignKey("RecipeId")] [JsonIgnore] public virtual Recipe Recipe { get; set; }
+        [JsonIgnore] public Recipe Recipe { get; set; }
 
         public string Id { get; set; }
     }
