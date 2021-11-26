@@ -93,12 +93,17 @@ namespace RecipeHubApi.Controllers
 
         [HttpGet]
         [Route("user/{userId}")]
-        public List<Recipe> GetByUser([FromRoute] string userId, [FromQuery] bool availableOnly)
+        public List<Recipe> GetByUser([FromRoute] string userId, [FromQuery] string searchTerm, [FromQuery] bool availableOnly)
         {
+            var recipeQueryable = string.IsNullOrEmpty(searchTerm)
+                ? _context.Recipe
+                : _context.Recipe
+                    .Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Description.ToLower().Replace("\n", " ").Contains(searchTerm.ToLower()));
+
             List<Recipe> recipes;
             if (availableOnly)
             {
-                recipes = _context.Recipe
+                recipes = recipeQueryable
                     .Where(r => r.UserId == userId)
                     .Where(r => r.ArticleId == null)
                     .Include(r => r.Ingredients)
@@ -107,7 +112,7 @@ namespace RecipeHubApi.Controllers
             }
             else
             {
-                recipes = _context.Recipe
+                recipes = recipeQueryable
                     .Where(r => r.UserId == userId)
                     .Include(r => r.Ingredients)
                     .Include(r => r.Steps)
