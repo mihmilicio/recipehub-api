@@ -72,12 +72,12 @@ namespace RecipeHubApi.Controllers
         [HttpGet]
         public List<Recipe> GetAll([FromQuery] string searchTerm)
         {
-
             var recipeQueryable = string.IsNullOrEmpty(searchTerm)
                 ? _context.Recipe
                 : _context.Recipe
-                    .Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Description.ToLower().Replace("\n", " ").Contains(searchTerm.ToLower()));
-                
+                    .Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) ||
+                                x.Description.ToLower().Replace("\n", " ").Contains(searchTerm.ToLower()));
+
             var recipes = recipeQueryable
                 .Include(r => r.Ingredients)
                 .Include(r => r.Steps)
@@ -93,19 +93,32 @@ namespace RecipeHubApi.Controllers
 
         [HttpGet]
         [Route("user/{userId}")]
-        public List<Recipe> GetByUser([FromRoute] string userId, [FromQuery] string searchTerm)
+        public List<Recipe> GetByUser([FromRoute] string userId, [FromQuery] string searchTerm, [FromQuery] bool availableOnly)
         {
             var recipeQueryable = string.IsNullOrEmpty(searchTerm)
                 ? _context.Recipe
                 : _context.Recipe
                     .Where(x => x.Name.ToLower().Contains(searchTerm.ToLower()) || x.Description.ToLower().Replace("\n", " ").Contains(searchTerm.ToLower()));
 
-            var recipes = recipeQueryable
-                .Where(r => r.UserId == userId)
-                .Include(r => r.Ingredients)
-                .Include(r => r.Steps)
-                .ToList();
-            
+            List<Recipe> recipes;
+            if (availableOnly)
+            {
+                recipes = recipeQueryable
+                    .Where(r => r.UserId == userId)
+                    .Where(r => r.ArticleId == null)
+                    .Include(r => r.Ingredients)
+                    .Include(r => r.Steps)
+                    .ToList();
+            }
+            else
+            {
+                recipes = recipeQueryable
+                    .Where(r => r.UserId == userId)
+                    .Include(r => r.Ingredients)
+                    .Include(r => r.Steps)
+                    .ToList();
+            }
+
             foreach (var recipe in recipes)
             {
                 recipe.Steps = recipe.Steps.OrderBy(i => i.Order).ToList();

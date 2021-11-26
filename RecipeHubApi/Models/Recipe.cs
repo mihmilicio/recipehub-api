@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace RecipeHubApi.Models
@@ -19,11 +18,12 @@ namespace RecipeHubApi.Models
         public int? Servings { get; set; }
         public int? Time { get; set; }
 
-        [JsonIgnore] public List<Article> Articles { get; set; }
+        public string ArticleId { get; set; }
+        [JsonIgnore] public Article Article { get; set; }
 
-        [ForeignKey("UserId")] public string UserId { get; set; }
+        public string UserId { get; set; }
 
-        public virtual User User { get; set; }
+        public User User { get; set; }
 
         public List<Ingredient> Ingredients { get; set; }
         public List<Step> Steps { get; set; }
