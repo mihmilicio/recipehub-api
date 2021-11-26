@@ -21,13 +21,7 @@ namespace RecipeHubApi.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Like>().HasKey(l => new { l.ArticleId, l.UserId });
-
-            modelBuilder
-                .Entity<Article>()
-                .HasMany(a => a.Recipes)
-                .WithMany(r => r.Articles)
-                .UsingEntity(j => j.ToTable("ArticleRecipe"));
+            modelBuilder.Entity<Like>().HasKey(l => new {l.ArticleId, l.UserId});
         }
     }
 }

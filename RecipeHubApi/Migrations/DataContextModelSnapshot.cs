@@ -19,21 +19,6 @@ namespace RecipeHubApi.Migrations
                 .HasAnnotation("ProductVersion", "5.0.11")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("ArticleRecipe", b =>
-            {
-                b.Property<string>("ArticlesId")
-                    .HasColumnType("nvarchar(450)");
-
-                b.Property<string>("RecipesId")
-                    .HasColumnType("nvarchar(450)");
-
-                b.HasKey("ArticlesId", "RecipesId");
-
-                b.HasIndex("RecipesId");
-
-                b.ToTable("ArticleRecipe");
-            });
-
             modelBuilder.Entity("RecipeHubApi.Models.Article", b =>
             {
                 b.Property<string>("Id")
@@ -146,6 +131,9 @@ namespace RecipeHubApi.Migrations
                 b.Property<string>("Id")
                     .HasColumnType("nvarchar(450)");
 
+                b.Property<string>("ArticleId")
+                    .HasColumnType("nvarchar(450)");
+
                 b.Property<DateTime>("CreatedOn")
                     .HasColumnType("datetime2");
 
@@ -169,6 +157,8 @@ namespace RecipeHubApi.Migrations
                     .HasColumnType("nvarchar(450)");
 
                 b.HasKey("Id");
+
+                b.HasIndex("ArticleId");
 
                 b.HasIndex("UserId");
 
@@ -232,21 +222,6 @@ namespace RecipeHubApi.Migrations
                 b.ToTable("User");
             });
 
-            modelBuilder.Entity("ArticleRecipe", b =>
-            {
-                b.HasOne("RecipeHubApi.Models.Article", null)
-                    .WithMany()
-                    .HasForeignKey("ArticlesId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-
-                b.HasOne("RecipeHubApi.Models.Recipe", null)
-                    .WithMany()
-                    .HasForeignKey("RecipesId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
-
             modelBuilder.Entity("RecipeHubApi.Models.Article", b =>
             {
                 b.HasOne("RecipeHubApi.Models.User", "User")
@@ -301,9 +276,15 @@ namespace RecipeHubApi.Migrations
 
             modelBuilder.Entity("RecipeHubApi.Models.Recipe", b =>
             {
+                b.HasOne("RecipeHubApi.Models.Article", "Article")
+                    .WithMany("Recipes")
+                    .HasForeignKey("ArticleId");
+
                 b.HasOne("RecipeHubApi.Models.User", "User")
                     .WithMany()
                     .HasForeignKey("UserId");
+
+                b.Navigation("Article");
 
                 b.Navigation("User");
             });
@@ -322,6 +303,8 @@ namespace RecipeHubApi.Migrations
                 b.Navigation("Comments");
 
                 b.Navigation("Likes");
+
+                b.Navigation("Recipes");
             });
 
             modelBuilder.Entity("RecipeHubApi.Models.Recipe", b =>

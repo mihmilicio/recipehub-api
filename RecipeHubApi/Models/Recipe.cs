@@ -18,7 +18,8 @@ namespace RecipeHubApi.Models
         public int? Servings { get; set; }
         public int? Time { get; set; }
 
-        [JsonIgnore] public List<Article> Articles { get; set; }
+        [JsonIgnore] public string ArticleId { get; set; }
+        [JsonIgnore] public Article Article { get; set; }
 
         public string UserId { get; set; }
 
