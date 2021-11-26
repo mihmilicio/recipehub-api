@@ -38,6 +38,10 @@ namespace RecipeHubApi.Controllers
 
             try
             {
+                foreach (var recipe in article.Recipes)
+                {
+                    _context.Entry(recipe).State = EntityState.Modified;
+                }
                 _context.Article.Add(article);
                 _context.SaveChanges();
             }
